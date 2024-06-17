@@ -6,60 +6,54 @@ import (
     "log"
 
     _ "github.com/mattn/go-sqlite3"
+    "golang-db/database"
+    "golang-db/models"
 )
 
 func main() {
     // Connect to the SQLite database
-    db, err := sql.Open("sqlite3", "./test.db")
+    database, err := db.Connect()
     if err != nil {
-        log.Fatal(err)
+        log.Fatalf("Error opening database: %v\n", err)
     }
-    defer db.Close()
+    defer database.Close()
 
     // Create the users table
-    createTableSQL := `CREATE TABLE IF NOT EXISTS users (
-        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        "name" TEXT,
-        "email" TEXT UNIQUE
-    );`
-    _, err = db.Exec(createTableSQL)
-    if err != nil {
-        log.Fatal(err)
+    if err := db.CreateTable(database); err != nil {
+        log.Fatalf("Error creating table: %v\n", err)
     }
 
     fmt.Println("Users table created!")
-// CRUD User Operations
+
     // Insert a new user
-    insertUser(db, "Mark Mark", "mark.mark@example.com")
+    user := models.User{Name: "Mark Mark", Email: "mark.mark@example.com"}
+    if err := db.InsertUser(database, &user); err != nil {
+        log.Printf("Error inserting user: %v\n", err)
+    }
 
     // Query and display all users
-    queryUsers(db)
+    if err := db.QueryUsers(database); err != nil {
+        log.Printf("Error querying users: %v\n", err)
+    }
 
     // Update a user
-    updateUser(db, 1, "Alice Alice", "alice.alice@example.com")
+    updatedUser := models.User{ID: 1, Name: "Alice Alice", Email: "alice.alice@example.com"}
+    if err := db.UpdateUser(database, &updatedUser); err != nil {
+        log.Printf("Error updating user: %v\n", err)
+    }
 
     // Query and display all users
-    queryUsers(db)
+    if err := db.QueryUsers(database); err != nil {
+        log.Printf("Error querying users: %v\n", err)
+    }
 
     // Delete a user
-    deleteUser(db, 1)
+    if err := db.DeleteUser(database, 1); err != nil {
+        log.Printf("Error deleting user: %v\n", err)
+    }
 
     // Query and display all users
-    queryUsers(db)
-}
-
-func insertUser(db *sql.DB, name string, email string) {
-   
-}
-
-func queryUsers(db *sql.DB) {
-   
-}
-
-func updateUser(db *sql.DB, id int, name string, email string) {
-    
-}
-
-func deleteUser(db *sql.DB, id int) {
-   
+    if err := db.QueryUsers(database); err != nil {
+        log.Printf("Error querying users: %v\n", err)
+    }
 }
